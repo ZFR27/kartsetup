@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kart Tuner">
+<meta name="theme-color" content="#0f0f0f">
+<title>Kart Tuner</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: rgba(255,255,255,0.09);
+    --text: #f0f0f0;
+    --muted: #888;
+    --accent: #e8452a;
+    --accent2: #f0a500;
+    --blue: #3a8fe8;
+    --radius: 16px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bot: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'SF Pro Text', sans-serif;
+    overscroll-behavior: none;
+  }
+
+  #app {
+    max-width: 430px;
+    margin: 0 auto;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: calc(var(--safe-top) + 18px) 20px 14px;
+    background: var(--bg);
+    border-bottom: 0.5px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .back-btn {
+    background: var(--surface);
+    border: none;
+    color: var(--accent);
+    font-size: 15px;
+    font-family: -apple-system, sans-serif;
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .back-btn.visible { display: flex; }
+
+  .header-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .flag-icon {
+    font-size: 20px;
+  }
+
+  .progress-bar {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+  }
+
+  .pip {
+    height: 3px;
+    flex: 1;
+    background: var(--surface2);
+    border-radius: 4px;
+    transition: background 0.3s;
+  }
+  .pip.on { background: var(--accent); }
+
+  main {
+    flex: 1;
+    padding: 20px 16px calc(var(--safe-bot) + 24px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .screen { display: none; animation: fadeUp 0.22s ease; }
+  .screen.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  h2 {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    font-size: 15px;
+    color: var(--muted);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .btn-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .choice-btn {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.15s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .choice-btn:active { background: var(--surface2); transform: scale(0.98); }
+
+  .choice-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .icon-red { background: rgba(232,69,42,0.15); }
+  .icon-blue { background: rgba(58,143,232,0.15); }
+  .icon-amber { background: rgba(240,165,0,0.15); }
+  .icon-gray { background: rgba(255,255,255,0.07); }
+
+  .choice-text { flex: 1; }
+  .choice-label { font-size: 16px; font-weight: 600; color: var(--text); display: block; margin-bottom: 2px; }
+  .choice-desc { font-size: 13px; color: var(--muted); display: block; line-height: 1.4; }
+
+  .chevron { color: var(--muted); font-size: 18px; opacity: 0.5; }
+
+  /* Result screen */
+  .result-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .badge-push { background: rgba(232,69,42,0.15); color: #f07060; }
+  .badge-loose { background: rgba(58,143,232,0.15); color: #70aaee; }
+  .badge-other { background: rgba(255,255,255,0.07); color: var(--muted); }
+
+  .result-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .result-desc { font-size: 14px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+
+  .fix-group {
+    background: var(--surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 12px;
+    border: 0.5px solid var(--border);
+  }
+
+  .fix-group-header {
+    padding: 10px 16px;
+    background: var(--surface2);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .fix-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 13px 16px;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 15px;
+    color: var(--text);
+    line-height: 1.45;
+  }
+  .fix-item:last-child { border-bottom: none; }
+
+  .fix-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 7px;
+  }
+
+  .dot-red { background: var(--accent); }
+  .dot-blue { background: var(--blue); }
+  .dot-amber { background: var(--accent2); }
+
+  .tip-box {
+    background: rgba(232,69,42,0.07);
+    border: 0.5px solid rgba(232,69,42,0.2);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-top: 6px;
+    font-size: 13px;
+    color: #c08070;
+    line-height: 1.6;
+  }
+
+  .tip-box strong { color: #f07060; font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="header-inner">
+      <button class="back-btn" id="backBtn" onclick="back()">‹ Back</button>
+      <span class="header-title" id="headerTitle">🏁 Kart Tuner</span>
+    </div>
+    <div class="progress-bar">
+      <div class="pip on" id="p0"></div>
+      <div class="pip" id="p1"></div>
+      <div class="pip" id="p2"></div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Screen 0: Where on track -->
+    <div class="screen active" id="s0">
+      <p class="hero-label">Step 1 of 3</p>
+      <h2>Where's the problem?</h2>
+      <p class="subtitle">Pick the part of the corner where your kart feels off.</p>
+      <div class="btn-list">
+        <button class="choice-btn" onclick="go('corner_entry')">
+          <div class="choice-icon icon-red">↩</div>
+          <div class="choice-text">
+            <span class="choice-label">Entering the corner</span>
+            <span class="choice-desc">Turning in, before the apex</span>
+          </div>
+          <span class="chevron">›</span>
+        </button>
+        <button class="choice-btn" onclick="go('corner_center')">
+          <div class="choice-icon icon-amber">⊙</div>
+          <div class="choice-text">
+            <span class="choice-label">Middle of corner</span>
+            <span class="choice-desc">At the apex or through the center</span>
+          </div>
+          <span class="chevron">›</span>
+        </button>
+        <button class="choice-btn" onclick="go('corner_exit')">
+          <div class="choice-icon icon-blue">↪</div>
+          <div class="choice-text">
+            <span class="choice-label">Leaving the corner</span>
+            <span class="choice-desc">On exit, opening the wheel</span>
+          </div>
+          <span class="chevron">›</span>
+        </button>
+        <button class="choice-btn" onclick="go('straight')">
+          <div class="choice-icon icon-gray">⇒</div>
+          <div class="choice-text">
+            <span class="choice-label">On the straight</span>
+            <span class="choice-desc">Speed or acceleration issues</span>
+          </div>
+          <span class="chevron">›</span>
+        </button>
+        <button class="choice-btn" onclick="go('general')">
+          <div class="choice-icon icon-gray">≡</div>
+          <div class="choice-text">
+            <span class="choice-label">General / whole lap</span>
+            <span class="choice-desc">Overall balance or handling</span>
+          </div>
+          <span class="chevron">›</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Screen 1: What's happening -->
+    <div class="screen" id="s1">
+      <p class="hero-label">Step 2 of 3</p>
+      <h2 id="s1Title">What is it doing?</h2>
+      <p class="subtitle">Pick the behavior that matches what you feel.</p>
+      <div class="btn-list" id="s1Btns"></div>
+    </div>
+
+    <!-- Screen 2: Results -->
+    <div class="screen" id="s2">
+      <div id="s2Content"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const tuningData = {
+  corner_entry: {
+    title: "Corner entry",
+    conditions: [
+      {
+        label: "Pushing / understeering",
+        desc: "Front washes wide, won't turn in",
+        badge: "badge-push", badgeLabel: "Understeer",
+        fixes: [
+          { cat: "Camber & caster", dot: "dot-red", items: ["Increase left front camber (more positive)", "Increase right front caster"] },
+          { cat: "Track width", dot: "dot-blue", items: ["Decrease front track width", "Move left front wheel out", "Move right rear wheel out (¼\" at a time)", "Move left rear wheel out", "Move rear track to right"] },
+          { cat: "Tires", dot: "dot-amber", items: ["Softer right front compound", "Harder right rear compound", "Wider right rear wheel", "Decrease right front stagger", "Increase right rear stagger (⅛\"–¼\" increments)"] },
+          { cat: "Air pressure", dot: "dot-blue", items: ["Decrease right front air pressure", "Increase right rear air pressure"] },
+          { cat: "Weight & seat", dot: "dot-red", items: ["Increase left side weight", "Decrease cross weight", "Decrease rear weight %", "Increase front weight (.25% at a time)", "Move seat forward"] },
+          { cat: "Check", dot: "dot-amber", items: ["Check toe out"] }
+        ]
+      },
+      {
+        label: "Loose / oversteering",
+        desc: "Rear steps out, front bites too hard",
+        badge: "badge-loose", badgeLabel: "Oversteer",
+        fixes: [
+          { cat: "Weight & seat", dot: "dot-blue", items: ["Decrease nose weight (½%–1% at a time)", "Increase rear weight", "Increase cross weight", "Decrease left side weight", "Move seat back", "Raise center of gravity"] },
+          { cat: "Camber & caster", dot: "dot-red", items: ["Decrease left front camber (more negative)", "More positive right front camber", "Decrease left front caster"] },
+          { cat: "Track width", dot: "dot-amber", items: ["Move right front wheel out", "Move left front wheel in", "Move right rear wheel in", "Move left rear wheel out", "Move rear track to left"] },
+          { cat: "Tires", dot: "dot-blue", items: ["Increase right front stagger", "Decrease rear stagger (⅛\"–¼\")", "Harder right front compound", "Softer right rear compound", "Narrower right rear wheel"] },
+          { cat: "Air pressure", dot: "dot-red", items: ["Decrease right rear tire pressure"] },
+          { cat: "Chassis", dot: "dot-amber", items: ["Stiffen front of chassis", "Check toe out"] }
+        ]
+      }
+    ]
+  },
+  corner_center: {
+    title: "Center of corner",
+    conditions: [
+      {
+        label: "Tight / pushing at apex",
+        desc: "Kart won't rotate through the middle",
+        badge: "badge-push", badgeLabel: "Tight center",
+        fixes: [
+          { cat: "Air pressure", dot: "dot-red", items: ["Increase left front 1 psi at a time", "Reduce right front ½ psi at a time", "Increase left rear and right rear ½ psi at a time"] },
+          { cat: "Track width", dot: "dot-blue", items: ["Move left front out (⅛\"–¼\" at a time)"] },
+          { cat: "Tires", dot: "dot-amber", items: ["Try same compound on a narrower wheel"] }
+        ]
+      },
+      {
+        label: "Loose at apex",
+        desc: "Rear slides or feels unstable mid-corner",
+        badge: "badge-loose", badgeLabel: "Loose center",
+        fixes: [
+          { cat: "Air pressure", dot: "dot-blue", items: ["Decrease left front pressure (¼–½ psi at a time)", "Increase left rear and right rear (½ psi at a time)"] },
+          { cat: "Track width", dot: "dot-red", items: ["Move left front in (⅛\"–¼\" at a time)", "Move right rear in as close as possible"] }
+        ]
+      },
+      {
+        label: "Very loose / four-wheel drift",
+        desc: "Whole kart sliding, losing control",
+        badge: "badge-loose", badgeLabel: "Full drift",
+        fixes: [
+          { cat: "Weight & balance", dot: "dot-red", items: ["Decrease left side %", "Increase cross weight", "Raise seat for more weight transfer"] },
+          { cat: "Tires", dot: "dot-amber", items: ["Softer compound for more traction", "Softer right rear (or new uncut over cut)", "Move front and rear wheels in"] },
+          { cat: "Air pressure", dot: "dot-blue", items: ["Decrease right front tire pressure", "Decrease right rear tire pressure", "Reduce air all around equally"] },
+          { cat: "Caster / wheels", dot: "dot-red", items: ["Increase caster on both fronts equally", "If on 10\" wheels, switch to 9.5\""] }
+        ]
+      }
+    ]
+  },
+  corner_exit: {
+    title: "Corner exit",
+    conditions: [
+      {
+        label: "Pushing / tight on exit",
+        desc: "Kart goes wide, understeer off corner",
+        badge: "badge-push", badgeLabel: "Tight exit",
+        fixes: [
+          { cat: "Camber & caster", dot: "dot-red", items: ["Decrease right front camber", "Increase left front caster"] },
+          { cat: "Weight", dot: "dot-blue", items: ["Increase nose weight", "Decrease cross weight (½%–1% at a time)"] },
+          { cat: "Tires", dot: "dot-amber", items: ["Harder left rear compound", "Harder right rear compound", "Decrease front stagger", "Increase rear stagger"] },
+          { cat: "Track width", dot: "dot-blue", items: ["Move left rear out (¼\"–½\")", "Move right rear wheel out", "Move rear track to right", "Widen front wheel width"] },
+          { cat: "Air pressure", dot: "dot-red", items: ["Increase air in left front", "Increase air in right rear", "Decrease air in right front", "Decrease air in left rear"] },
+          { cat: "Chassis", dot: "dot-amber", items: ["Stiffen rear of chassis"] }
+        ]
+      },
+      {
+        label: "Loose / oversteer on exit",
+        desc: "Rear kicks out when accelerating away",
+        badge: "badge-loose", badgeLabel: "Loose exit",
+        fixes: [
+          { cat: "Camber", dot: "dot-blue", items: ["More positive right front camber", "Decrease left front camber"] },
+          { cat: "Caster", dot: "dot-red", items: ["Decrease right front caster"] },
+          { cat: "Tires", dot: "dot-amber", items: ["Softer left rear compound", "Increase front stagger", "Decrease rear stagger"] },
+          { cat: "Air pressure", dot: "dot-blue", items: ["Decrease right rear tire pressure"] },
+          { cat: "Track width", dot: "dot-red", items: ["Move left rear in (¼\"–½\")", "Move right rear wheel in", "Move rear track to left"] },
+          { cat: "Weight", dot: "dot-amber", items: ["Increase cross weight (½%–1%)", "Increase rear weight %", "Raise center of gravity", "Raise rear of kart"] }
+        ]
+      }
+    ]
+  },
+  straight: {
+    title: "On the straight",
+    conditions: [
+      {
+        label: "Much slower on straights",
+        desc: "Losing time vs other karts in a straight line",
+        badge: "badge-other", badgeLabel: "Top speed",
+        fixes: [
+          { cat: "Gearing", dot: "dot-red", items: ["Gear ratio too short — remove teeth from rear sprocket", "1 driver gear ≈ 3–5 rear gears"] },
+          { cat: "Driving", dot: "dot-amber", items: ["Evaluate your driving line through the previous corner"] },
+          { cat: "Engine", dot: "dot-blue", items: ["Check carb settings and jetting"] }
+        ]
+      },
+      {
+        label: "Slow to accelerate",
+        desc: "Poor drive off corners or away from stops",
+        badge: "badge-other", badgeLabel: "Acceleration",
+        fixes: [
+          { cat: "Gearing", dot: "dot-red", items: ["Gear ratio too tall — add teeth to rear sprocket", "Each rear gear ≈ 100 RPM change", "1 driver gear ≈ 400–500 RPM"] },
+          { cat: "Driving", dot: "dot-amber", items: ["Evaluate driving line through corner — a poor line kills launch"] },
+          { cat: "Engine", dot: "dot-blue", items: ["Check carb settings", "Rich-out on mixture screw helps bottom-end pull", "Lean-in on screw helps top-end RPM"] }
+        ]
+      }
+    ]
+  },
+  general: {
+    title: "General handling",
+    conditions: [
+      {
+        label: "No grip in corners",
+        desc: "Too much slide, losing time everywhere",
+        badge: "badge-other", badgeLabel: "No grip",
+        fixes: [
+          { cat: "Seat & track", dot: "dot-red", items: ["Raise seat", "Move front track out", "Move rear track in"] },
+          { cat: "Tires & air", dot: "dot-blue", items: ["Adjust tire pressures — less grip = less air", "Check tire compound for track conditions"] }
+        ]
+      },
+      {
+        label: "Bogs down / hops in corners",
+        desc: "Too much grip, right rear overloaded",
+        badge: "badge-other", badgeLabel: "Too much grip",
+        fixes: [
+          { cat: "Track width", dot: "dot-blue", items: ["Move front wheels out", "Move right rear wheel out", "Move rear track to right"] },
+          { cat: "Weight & stagger", dot: "dot-red", items: ["Increase front and rear stagger", "Increase left side weight", "Lower cross weight", "Increase rear weight", "Lower seat"] },
+          { cat: "Tires & pressure", dot: "dot-amber", items: ["Increase right side air pressure", "Harder tire compound"] }
+        ]
+      },
+      {
+        label: "Understeer all lap (pushing)",
+        desc: "Consistently pushing throughout every corner",
+        badge: "badge-push", badgeLabel: "Understeer",
+        fixes: [
+          { cat: "Track width", dot: "dot-red", items: ["Narrower front track", "Wider rear track"] },
+          { cat: "Tires", dot: "dot-amber", items: ["Wider front tires", "Softer compound in front", "Narrower rear tires", "Harder compound in rear"] },
+          { cat: "Air pressure", dot: "dot-blue", items: ["Lower air pressure in front", "Higher air pressure in rear"] },
+          { cat: "Weight & chassis", dot: "dot-red", items: ["Move weight to front", "Increase stagger", "Tighten rear bumper", "Decrease frame flex"] }
+        ]
+      },
+      {
+        label: "Oversteer all lap (loose)",
+        desc: "Consistently loose through every corner",
+        badge: "badge-loose", badgeLabel: "Oversteer",
+        fixes: [
+          { cat: "Track width", dot: "dot-blue", items: ["Wider front track", "Narrower rear tires", "Wider rear tires"] },
+          { cat: "Tires", dot: "dot-amber", items: ["Narrower front tires", "Harder compound in front", "Softer compound in rear"] },
+          { cat: "Air pressure", dot: "dot-red", items: ["Higher air pressure in front", "Lower air pressure in rear"] },
+          { cat: "Weight & chassis", dot: "dot-blue", items: ["Move weight to rear", "Decrease stagger", "Loosen rear bumper", "Increase frame flex"] }
+        ]
+      }
+    ]
+  }
+};
+
+const dotCycle = ["dot-red","dot-blue","dot-amber"];
+let navHistory = [];
+let currentSection = null;
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  el.scrollTop = 0;
+  document.querySelector('main').scrollTo(0, 0);
+  updateHeader(id);
+}
+
+function updateHeader(id) {
+  const back = document.getElementById('backBtn');
+  const title = document.getElementById('headerTitle');
+  const pips = [document.getElementById('p0'), document.getElementById('p1'), document.getElementById('p2')];
+  pips.forEach((p, i) => p.classList.toggle('on', i <= ['s0','s1','s2'].indexOf(id)));
+  back.classList.toggle('visible', id !== 's0');
+  title.textContent = id === 's0' ? '🏁 Kart Tuner' : id === 's1' ? 'What is it doing?' : 'Your fixes';
+}
+
+function go(key) {
+  navHistory.push(document.querySelector('.screen.active').id);
+  currentSection = key;
+  const sec = tuningData[key];
+  document.getElementById('s1Title').textContent = sec.title;
+  const btns = document.getElementById('s1Btns');
+  btns.innerHTML = '';
+  sec.conditions.forEach((c, i) => {
+    const icons = ['↩','↪','⊙','⇒','≡','⚑'];
+    const iconClasses = ['icon-red','icon-blue','icon-amber','icon-gray','icon-gray','icon-red'];
+    const b = document.createElement('button');
+    b.className = 'choice-btn';
+    b.innerHTML = `<div class="choice-icon ${iconClasses[i % iconClasses.length]}">${icons[i % icons.length]}</div><div class="choice-text"><span class="choice-label">${c.label}</span><span class="choice-desc">${c.desc}</span></div><span class="chevron">›</span>`;
+    b.onclick = () => showResult(i);
+    btns.appendChild(b);
+  });
+  show('s1');
+}
+
+function showResult(idx) {
+  navHistory.push('s1');
+  const c = tuningData[currentSection].conditions[idx];
+  let html = `<div class="result-badge ${c.badge}">${c.badgeLabel}</div>`;
+  html += `<div class="result-title">${c.label}</div>`;
+  html += `<div class="result-desc">${c.desc}</div>`;
+  c.fixes.forEach((group, gi) => {
+    html += `<div class="fix-group"><div class="fix-group-header">${group.cat}</div>`;
+    group.items.forEach((item, ii) => {
+      const dot = dotCycle[(gi + ii) % 3];
+      html += `<div class="fix-item"><div class="fix-dot ${dot}"></div><span>${item}</span></div>`;
+    });
+    html += `</div>`;
+  });
+  html += `<div class="tip-box"><strong>Tip:</strong> Change one thing at a time and test. Even small adjustments — ¼ psi of air, ⅛" of stagger — can make a big difference on the stopwatch.</div>`;
+  document.getElementById('s2Content').innerHTML = html;
+  show('s2');
+}
+
+function back() {
+  if (navHistory.length) show(navHistory.pop());
+}
+</script>
+</body>
+</html>
