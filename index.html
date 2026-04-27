@@ -9,142 +9,361 @@
 <meta name="theme-color" content="#0f0f0f">
 <title>Kart Tuner</title>
 <style>
-  :root {
-    --bg: #0f0f0f;
-    --surface: #1a1a1a;
-    --surface2: #242424;
-    --border: rgba(255,255,255,0.09);
-    --text: #f0f0f0;
-    --muted: #888;
-    --accent: #e8452a;
-    --accent2: #f0a500;
-    --blue: #3a8fe8;
-    --green: #3aaa60;
-    --radius: 16px;
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bot: env(safe-area-inset-bottom, 0px);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, 'SF Pro Text', sans-serif; overscroll-behavior: none; }
-  #app { max-width: 430px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; }
+:root {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --surface2: #242424;
+  --border: rgba(255,255,255,0.09);
+  --text: #f0f0f0;
+  --muted: #888;
+  --accent: #e8452a;
+  --accent2: #f0a500;
+  --blue: #3a8fe8;
+  --green: #3aaa60;
+  --radius: 16px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, 'SF Pro Text', sans-serif; overscroll-behavior: none; }
+#app { max-width: 430px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; }
 
-  header { padding: calc(var(--safe-top) + 18px) 20px 14px; background: var(--bg); border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 10; }
-  .header-inner { display: flex; align-items: center; gap: 10px; }
-  .back-btn { background: var(--surface); border: none; color: var(--accent); font-size: 15px; font-family: -apple-system, sans-serif; padding: 6px 12px; border-radius: 20px; cursor: pointer; display: none; align-items: center; gap: 4px; flex-shrink: 0; }
-  .back-btn.visible { display: flex; }
-  .header-title { font-size: 17px; font-weight: 600; color: var(--text); flex: 1; }
-  .progress-bar { display: flex; gap: 5px; margin-top: 10px; }
-  .pip { height: 3px; flex: 1; background: var(--surface2); border-radius: 4px; transition: background 0.3s; }
-  .pip.on { background: var(--accent); }
+/* ── NAV TABS ── */
+.tab-bar { display: flex; background: var(--bg); border-bottom: 0.5px solid var(--border); padding: calc(var(--safe-top) + 8px) 0 0; position: sticky; top: 0; z-index: 20; }
+.tab { flex: 1; padding: 10px 4px 12px; text-align: center; border: none; background: none; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.04em; cursor: pointer; position: relative; transition: color 0.2s; }
+.tab.active { color: var(--accent); }
+.tab.active::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 2px; background: var(--accent); border-radius: 2px 2px 0 0; }
+.tab-icon { font-size: 18px; display: block; margin-bottom: 3px; }
 
-  main { flex: 1; padding: 20px 16px calc(var(--safe-bot) + 24px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .screen { display: none; animation: fadeUp 0.22s ease; }
-  .screen.active { display: block; }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+/* ── MAIN PANEL ── */
+.panel { display: none; flex: 1; flex-direction: column; }
+.panel.active { display: flex; }
 
-  .hero-label { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
-  h2 { font-size: 26px; font-weight: 700; line-height: 1.2; color: var(--text); margin-bottom: 8px; }
-  .subtitle { font-size: 15px; color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
+main { flex: 1; padding: 20px 16px calc(var(--safe-bot) + 24px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.screen { display: none; animation: fadeUp 0.2s ease; }
+.screen.active { display: block; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-  .btn-list { display: flex; flex-direction: column; gap: 10px; }
-  .choice-btn { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px 18px; text-align: left; cursor: pointer; width: 100%; transition: background 0.15s, transform 0.1s; display: flex; align-items: center; gap: 14px; }
-  .choice-btn:active { background: var(--surface2); transform: scale(0.98); }
-  .choice-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-  .icon-red { background: rgba(232,69,42,0.15); }
-  .icon-blue { background: rgba(58,143,232,0.15); }
-  .icon-amber { background: rgba(240,165,0,0.15); }
-  .icon-gray { background: rgba(255,255,255,0.07); }
-  .choice-text { flex: 1; }
-  .choice-label { font-size: 16px; font-weight: 600; color: var(--text); display: block; margin-bottom: 2px; }
-  .choice-desc { font-size: 13px; color: var(--muted); display: block; line-height: 1.4; }
-  .chevron { color: var(--muted); font-size: 18px; opacity: 0.5; }
+/* ── HEADER (tuner panel) ── */
+.panel-header { padding: 16px 20px 14px; background: var(--bg); border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.back-btn { background: var(--surface); border: none; color: var(--accent); font-size: 15px; padding: 6px 12px; border-radius: 20px; cursor: pointer; display: none; align-items: center; flex-shrink: 0; }
+.back-btn.visible { display: flex; }
+.panel-title { font-size: 17px; font-weight: 600; color: var(--text); flex: 1; }
+.progress-bar { display: flex; gap: 5px; margin: 0 20px 10px; }
+.pip { height: 3px; flex: 1; background: var(--surface2); border-radius: 4px; transition: background 0.3s; }
+.pip.on { background: var(--accent); }
 
-  .result-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 12px; }
-  .badge-push { background: rgba(232,69,42,0.15); color: #f07060; }
-  .badge-loose { background: rgba(58,143,232,0.15); color: #70aaee; }
-  .badge-other { background: rgba(255,255,255,0.07); color: var(--muted); }
+/* ── TYPOGRAPHY ── */
+.hero-label { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+h2 { font-size: 26px; font-weight: 700; line-height: 1.2; color: var(--text); margin-bottom: 8px; }
+.subtitle { font-size: 15px; color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
+.section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 18px 0 8px; padding-left: 4px; }
 
-  .result-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-  .result-desc { font-size: 14px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+/* ── CHOICE BUTTONS ── */
+.btn-list { display: flex; flex-direction: column; gap: 10px; }
+.choice-btn { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 16px 18px; text-align: left; cursor: pointer; width: 100%; transition: background 0.15s, transform 0.1s; display: flex; align-items: center; gap: 14px; }
+.choice-btn:active { background: var(--surface2); transform: scale(0.98); }
+.choice-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.icon-red { background: rgba(232,69,42,0.15); }
+.icon-blue { background: rgba(58,143,232,0.15); }
+.icon-amber { background: rgba(240,165,0,0.15); }
+.icon-gray { background: rgba(255,255,255,0.07); }
+.choice-text { flex: 1; }
+.choice-label { font-size: 16px; font-weight: 600; color: var(--text); display: block; margin-bottom: 2px; }
+.choice-desc { font-size: 13px; color: var(--muted); display: block; line-height: 1.4; }
+.chevron { color: var(--muted); font-size: 18px; opacity: 0.5; }
 
-  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 18px 0 8px; padding-left: 4px; }
+/* ── RESULT ── */
+.result-badge { display: inline-flex; align-items: center; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 12px; }
+.badge-push { background: rgba(232,69,42,0.15); color: #f07060; }
+.badge-loose { background: rgba(58,143,232,0.15); color: #70aaee; }
+.badge-other { background: rgba(255,255,255,0.07); color: var(--muted); }
+.result-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.result-desc { font-size: 14px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+.fix-group { background: var(--surface); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; border: 0.5px solid var(--border); }
+.fix-group-header { padding: 10px 16px; background: var(--surface2); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); border-bottom: 0.5px solid var(--border); }
+.fix-item { display: flex; align-items: flex-start; gap: 12px; padding: 13px 16px; border-bottom: 0.5px solid var(--border); font-size: 15px; color: var(--text); line-height: 1.45; }
+.fix-item:last-child { border-bottom: none; }
+.fix-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 7px; }
+.dot-red { background: var(--accent); }
+.dot-blue { background: var(--blue); }
+.dot-amber { background: var(--accent2); }
+.dot-green { background: var(--green); }
+.tip-box { background: rgba(232,69,42,0.07); border: 0.5px solid rgba(232,69,42,0.2); border-radius: var(--radius); padding: 14px 16px; margin-top: 6px; font-size: 13px; color: #c08070; line-height: 1.6; }
+.tip-box strong { color: #f07060; font-weight: 600; }
 
-  .fix-group { background: var(--surface); border-radius: var(--radius); overflow: hidden; margin-bottom: 10px; border: 0.5px solid var(--border); }
-  .fix-group-header { padding: 10px 16px; background: var(--surface2); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); border-bottom: 0.5px solid var(--border); }
-  .fix-item { display: flex; align-items: flex-start; gap: 12px; padding: 13px 16px; border-bottom: 0.5px solid var(--border); font-size: 15px; color: var(--text); line-height: 1.45; }
-  .fix-item:last-child { border-bottom: none; }
-  .fix-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 7px; }
-  .dot-red { background: var(--accent); }
-  .dot-blue { background: var(--blue); }
-  .dot-amber { background: var(--accent2); }
-  .dot-green { background: var(--green); }
+/* ── LOGBOOK ── */
+.log-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.log-page-title { font-size: 22px; font-weight: 700; color: var(--text); }
+.add-btn { background: var(--accent); border: none; color: #fff; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 20px; cursor: pointer; flex-shrink: 0; }
+.add-btn:active { opacity: 0.85; transform: scale(0.97); }
 
-  .tip-box { background: rgba(232,69,42,0.07); border: 0.5px solid rgba(232,69,42,0.2); border-radius: var(--radius); padding: 14px 16px; margin-top: 6px; font-size: 13px; color: #c08070; line-height: 1.6; }
-  .tip-box strong { color: #f07060; font-weight: 600; }
+.empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
+.empty-state .big-icon { font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.4; }
+.empty-state p { font-size: 15px; line-height: 1.6; }
+
+.session-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; cursor: pointer; transition: background 0.15s; }
+.session-card:active { background: var(--surface2); }
+.session-card-header { padding: 14px 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.session-card-meta { flex: 1; }
+.session-date { font-size: 12px; color: var(--muted); margin-bottom: 3px; font-weight: 500; }
+.session-name { font-size: 16px; font-weight: 600; color: var(--text); }
+.session-track { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.session-chevron { color: var(--muted); font-size: 18px; opacity: 0.4; padding-top: 2px; }
+.session-card-footer { border-top: 0.5px solid var(--border); padding: 10px 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+.session-tag { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 10px; background: var(--surface2); color: var(--muted); }
+.session-tag.has-changes { background: rgba(232,69,42,0.12); color: #f07060; }
+
+/* ── FORM ── */
+.form-section { margin-bottom: 20px; }
+.form-label { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: block; }
+.form-input, .form-textarea, .form-select {
+  width: 100%; background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px;
+  color: var(--text); font-size: 15px; font-family: -apple-system, sans-serif;
+  padding: 13px 14px; outline: none; appearance: none;
+}
+.form-input:focus, .form-textarea:focus { border-color: rgba(232,69,42,0.5); }
+.form-textarea { min-height: 90px; resize: none; line-height: 1.5; }
+.form-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+.form-select option { background: #1a1a1a; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.setup-field { display: flex; flex-direction: column; gap: 6px; }
+.setup-field-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+.setup-field-input { background: var(--surface); border: 0.5px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; padding: 10px 12px; outline: none; font-family: -apple-system, sans-serif; width: 100%; }
+.setup-field-input:focus { border-color: rgba(232,69,42,0.5); }
+
+.race-entry { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
+.race-entry-header { padding: 12px 14px; background: var(--surface2); display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid var(--border); }
+.race-num { font-size: 13px; font-weight: 700; color: var(--text); }
+.race-delete { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 0; line-height: 1; }
+.race-delete:active { color: var(--accent); }
+.race-entry-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+
+.action-row { display: flex; gap: 10px; margin-top: 24px; padding-bottom: 8px; }
+.btn-primary { flex: 1; background: var(--accent); border: none; color: #fff; font-size: 16px; font-weight: 600; padding: 15px; border-radius: var(--radius); cursor: pointer; font-family: -apple-system, sans-serif; }
+.btn-primary:active { opacity: 0.85; transform: scale(0.98); }
+.btn-secondary { flex: 1; background: var(--surface); border: 0.5px solid var(--border); color: var(--text); font-size: 16px; font-weight: 500; padding: 15px; border-radius: var(--radius); cursor: pointer; font-family: -apple-system, sans-serif; }
+.btn-secondary:active { background: var(--surface2); }
+
+.detail-hero { margin-bottom: 20px; }
+.detail-date { font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.detail-name { font-size: 24px; font-weight: 700; margin-bottom: 2px; }
+.detail-track { font-size: 15px; color: var(--muted); }
+
+.detail-block { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; }
+.detail-block-title { padding: 10px 16px; background: var(--surface2); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); border-bottom: 0.5px solid var(--border); }
+.detail-block-body { padding: 14px 16px; }
+.detail-kv { display: flex; justify-content: space-between; align-items: flex-start; padding: 7px 0; border-bottom: 0.5px solid var(--border); gap: 10px; }
+.detail-kv:last-child { border-bottom: none; padding-bottom: 0; }
+.detail-k { font-size: 13px; color: var(--muted); flex-shrink: 0; }
+.detail-v { font-size: 14px; color: var(--text); text-align: right; font-weight: 500; }
+.detail-note { font-size: 14px; color: var(--text); line-height: 1.6; }
+
+.race-detail-card { background: var(--surface2); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+.race-detail-num { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 8px; }
+
+.delete-session-btn { width: 100%; background: rgba(232,69,42,0.1); border: 0.5px solid rgba(232,69,42,0.25); color: #f07060; font-size: 15px; font-weight: 600; padding: 14px; border-radius: var(--radius); cursor: pointer; margin-top: 8px; font-family: -apple-system, sans-serif; }
+.delete-session-btn:active { background: rgba(232,69,42,0.2); }
+
+.add-race-btn { width: 100%; background: var(--surface2); border: 0.5px dashed rgba(255,255,255,0.15); color: var(--muted); font-size: 14px; font-weight: 500; padding: 13px; border-radius: 12px; cursor: pointer; font-family: -apple-system, sans-serif; margin-top: 4px; }
+.add-race-btn:active { background: var(--surface); }
+
+.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; display: none; align-items: flex-end; justify-content: center; padding-bottom: calc(var(--safe-bot) + 16px); }
+.confirm-overlay.open { display: flex; animation: fadeUp 0.18s ease; }
+.confirm-sheet { background: var(--surface); border-radius: 20px 20px 0 0; width: 100%; max-width: 430px; padding: 24px 20px; }
+.confirm-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.confirm-msg { font-size: 14px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+.confirm-btns { display: flex; flex-direction: column; gap: 10px; }
 </style>
 </head>
 <body>
 <div id="app">
-  <header>
-    <div class="header-inner">
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <button class="tab active" id="tab-tuner" onclick="switchTab('tuner')">
+      <span class="tab-icon">🏁</span>TUNER
+    </button>
+    <button class="tab" id="tab-log" onclick="switchTab('log')">
+      <span class="tab-icon">📋</span>LOGBOOK
+    </button>
+  </div>
+
+  <!-- ══════════════ TUNER PANEL ══════════════ -->
+  <div class="panel active" id="panel-tuner">
+    <div class="panel-header">
       <button class="back-btn" id="backBtn" onclick="back()">‹ Back</button>
-      <span class="header-title" id="headerTitle">🏁 Kart Tuner</span>
+      <span class="panel-title" id="tunerTitle">Where's the problem?</span>
     </div>
     <div class="progress-bar">
       <div class="pip on" id="p0"></div>
       <div class="pip" id="p1"></div>
       <div class="pip" id="p2"></div>
     </div>
-  </header>
+    <main id="tuner-main">
+      <div class="screen active" id="s0">
+        <p class="hero-label">Step 1 of 3</p>
+        <h2>Where's the problem?</h2>
+        <p class="subtitle">Pick the part of the corner where your kart feels off.</p>
+        <div class="btn-list">
+          <button class="choice-btn" onclick="go('corner_entry')">
+            <div class="choice-icon icon-red">↩</div>
+            <div class="choice-text"><span class="choice-label">Entering the corner</span><span class="choice-desc">Turning in, before the apex</span></div>
+            <span class="chevron">›</span>
+          </button>
+          <button class="choice-btn" onclick="go('corner_center')">
+            <div class="choice-icon icon-amber">⊙</div>
+            <div class="choice-text"><span class="choice-label">Middle of corner</span><span class="choice-desc">At the apex or through the center</span></div>
+            <span class="chevron">›</span>
+          </button>
+          <button class="choice-btn" onclick="go('corner_exit')">
+            <div class="choice-icon icon-blue">↪</div>
+            <div class="choice-text"><span class="choice-label">Leaving the corner</span><span class="choice-desc">On exit, opening the wheel</span></div>
+            <span class="chevron">›</span>
+          </button>
+          <button class="choice-btn" onclick="go('straight')">
+            <div class="choice-icon icon-gray">⇒</div>
+            <div class="choice-text"><span class="choice-label">On the straight</span><span class="choice-desc">Speed or acceleration issues</span></div>
+            <span class="chevron">›</span>
+          </button>
+          <button class="choice-btn" onclick="go('general')">
+            <div class="choice-icon icon-gray">≡</div>
+            <div class="choice-text"><span class="choice-label">General / whole lap</span><span class="choice-desc">Overall balance or handling</span></div>
+            <span class="chevron">›</span>
+          </button>
+        </div>
+      </div>
+      <div class="screen" id="s1">
+        <p class="hero-label">Step 2 of 3</p>
+        <h2 id="s1Title">What is it doing?</h2>
+        <p class="subtitle">Pick the behavior that matches what you feel.</p>
+        <div class="btn-list" id="s1Btns"></div>
+      </div>
+      <div class="screen" id="s2">
+        <div id="s2Content"></div>
+      </div>
+    </main>
+  </div>
 
-  <main>
-    <div class="screen active" id="s0">
-      <p class="hero-label">Step 1 of 3</p>
-      <h2>Where's the problem?</h2>
-      <p class="subtitle">Pick the part of the corner where your kart feels off.</p>
-      <div class="btn-list">
-        <button class="choice-btn" onclick="go('corner_entry')">
-          <div class="choice-icon icon-red">↩</div>
-          <div class="choice-text"><span class="choice-label">Entering the corner</span><span class="choice-desc">Turning in, before the apex</span></div>
-          <span class="chevron">›</span>
-        </button>
-        <button class="choice-btn" onclick="go('corner_center')">
-          <div class="choice-icon icon-amber">⊙</div>
-          <div class="choice-text"><span class="choice-label">Middle of corner</span><span class="choice-desc">At the apex or through the center</span></div>
-          <span class="chevron">›</span>
-        </button>
-        <button class="choice-btn" onclick="go('corner_exit')">
-          <div class="choice-icon icon-blue">↪</div>
-          <div class="choice-text"><span class="choice-label">Leaving the corner</span><span class="choice-desc">On exit, opening the wheel</span></div>
-          <span class="chevron">›</span>
-        </button>
-        <button class="choice-btn" onclick="go('straight')">
-          <div class="choice-icon icon-gray">⇒</div>
-          <div class="choice-text"><span class="choice-label">On the straight</span><span class="choice-desc">Speed or acceleration issues</span></div>
-          <span class="chevron">›</span>
-        </button>
-        <button class="choice-btn" onclick="go('general')">
-          <div class="choice-icon icon-gray">≡</div>
-          <div class="choice-text"><span class="choice-label">General / whole lap</span><span class="choice-desc">Overall balance or handling</span></div>
-          <span class="chevron">›</span>
-        </button>
+  <!-- ══════════════ LOGBOOK PANEL ══════════════ -->
+  <div class="panel" id="panel-log">
+    <main id="log-main">
+
+      <!-- Log list -->
+      <div class="screen active" id="log-list">
+        <div class="log-header-row">
+          <div class="log-page-title">Logbook</div>
+          <button class="add-btn" onclick="showNewSession()">+ New Session</button>
+        </div>
+        <p class="subtitle">Your race setups and changes.</p>
+        <div id="sessions-list"></div>
+      </div>
+
+      <!-- Session detail -->
+      <div class="screen" id="log-detail">
+        <div id="log-detail-content"></div>
+      </div>
+
+      <!-- New / Edit session form -->
+      <div class="screen" id="log-form">
+        <p class="hero-label" id="form-mode-label">New Session</p>
+        <h2 id="form-title">Race day details</h2>
+        <p class="subtitle">Fill in what you know. Everything is optional.</p>
+
+        <div class="form-section">
+          <label class="form-label">Session name</label>
+          <input class="form-input" id="f-name" placeholder="e.g. Round 3 — Meridian Speedway" maxlength="60">
+        </div>
+
+        <div class="form-row form-section">
+          <div>
+            <label class="form-label">Date</label>
+            <input class="form-input" id="f-date" type="date">
+          </div>
+          <div>
+            <label class="form-label">Track</label>
+            <input class="form-input" id="f-track" placeholder="Track name" maxlength="40">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label class="form-label">Conditions</label>
+          <select class="form-input form-select" id="f-conditions">
+            <option value="">— select —</option>
+            <option>Hot & dry</option>
+            <option>Cool & dry</option>
+            <option>Humid</option>
+            <option>Damp / light rain</option>
+            <option>Wet</option>
+          </select>
+        </div>
+
+        <div class="form-section">
+          <label class="form-label">Baseline setup</label>
+          <div class="setup-grid">
+            <div class="setup-field"><span class="setup-field-label">LF caster</span><input class="setup-field-input" id="f-lf-caster" placeholder="e.g. 10°"></div>
+            <div class="setup-field"><span class="setup-field-label">RF caster</span><input class="setup-field-input" id="f-rf-caster" placeholder="e.g. 12°"></div>
+            <div class="setup-field"><span class="setup-field-label">LF camber</span><input class="setup-field-input" id="f-lf-camber" placeholder="e.g. +1.2"></div>
+            <div class="setup-field"><span class="setup-field-label">RF camber</span><input class="setup-field-input" id="f-rf-camber" placeholder="e.g. -2.5"></div>
+            <div class="setup-field"><span class="setup-field-label">LF psi</span><input class="setup-field-input" id="f-lf-psi" placeholder="e.g. 8"></div>
+            <div class="setup-field"><span class="setup-field-label">RF psi</span><input class="setup-field-input" id="f-rf-psi" placeholder="e.g. 9"></div>
+            <div class="setup-field"><span class="setup-field-label">LR psi</span><input class="setup-field-input" id="f-lr-psi" placeholder="e.g. 10"></div>
+            <div class="setup-field"><span class="setup-field-label">RR psi</span><input class="setup-field-input" id="f-rr-psi" placeholder="e.g. 10"></div>
+            <div class="setup-field"><span class="setup-field-label">Front stagger</span><input class="setup-field-input" id="f-front-stagger" placeholder='e.g. 1.5"'></div>
+            <div class="setup-field"><span class="setup-field-label">Rear stagger</span><input class="setup-field-input" id="f-rear-stagger" placeholder='e.g. 0.75"'></div>
+            <div class="setup-field"><span class="setup-field-label">Cross weight</span><input class="setup-field-input" id="f-cross" placeholder="e.g. 57%"></div>
+            <div class="setup-field"><span class="setup-field-label">Left side %</span><input class="setup-field-input" id="f-leftside" placeholder="e.g. 55%"></div>
+            <div class="setup-field"><span class="setup-field-label">Gear (driver)</span><input class="setup-field-input" id="f-gear-driver" placeholder="e.g. 15t"></div>
+            <div class="setup-field"><span class="setup-field-label">Gear (rear)</span><input class="setup-field-input" id="f-gear-rear" placeholder="e.g. 60t"></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label class="form-label">Tire compound / notes</label>
+          <input class="form-input" id="f-tires" placeholder="e.g. SS-33 front, SS-22 rear">
+        </div>
+
+        <div class="form-section">
+          <label class="form-label">General notes</label>
+          <textarea class="form-textarea" id="f-notes" placeholder="Track conditions, kart feel, anything you want to remember…"></textarea>
+        </div>
+
+        <!-- Race changes -->
+        <div class="form-section">
+          <label class="form-label">Race / heat changes</label>
+          <div id="races-container"></div>
+          <button class="add-race-btn" onclick="addRaceEntry()">+ Add race / heat</button>
+        </div>
+
+        <div class="action-row">
+          <button class="btn-secondary" onclick="cancelForm()">Cancel</button>
+          <button class="btn-primary" onclick="saveSession()">Save session</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Confirm delete overlay -->
+  <div class="confirm-overlay" id="confirm-overlay">
+    <div class="confirm-sheet">
+      <div class="confirm-title">Delete session?</div>
+      <div class="confirm-msg">This will permanently remove this session and all its race data. This can't be undone.</div>
+      <div class="confirm-btns">
+        <button class="btn-primary" style="background:#c0332a;" onclick="confirmDelete()">Delete</button>
+        <button class="btn-secondary" onclick="closeConfirm()">Cancel</button>
       </div>
     </div>
+  </div>
 
-    <div class="screen" id="s1">
-      <p class="hero-label">Step 2 of 3</p>
-      <h2 id="s1Title">What is it doing?</h2>
-      <p class="subtitle">Pick the behavior that matches what you feel.</p>
-      <div class="btn-list" id="s1Btns"></div>
-    </div>
-
-    <div class="screen" id="s2">
-      <div id="s2Content"></div>
-    </div>
-  </main>
 </div>
 
 <script>
+/* ═══════════════════════════════════════
+   TUNING DATA
+═══════════════════════════════════════ */
 const tuningData = {
   corner_entry: {
     title: "Corner entry",
@@ -154,27 +373,13 @@ const tuningData = {
         desc: "Front washes wide, won't turn in — too much rear grip",
         badge: "badge-push", badgeLabel: "Understeer",
         sections: [
-          { label: "Geometry", fixes: [
-            { cat: "Caster & camber", dot: "dot-red", items: ["Increase right front caster", "Increase left front camber (more positive)", "Decrease right front camber (more negative)"] }
-          ]},
-          { label: "Air pressure", fixes: [
-            { cat: "Pressure changes", dot: "dot-blue", items: ["Decrease right front air pressure", "Increase right rear air pressure", "Increase left rear air pressure"] }
-          ]},
-          { label: "Wheel placement", fixes: [
-            { cat: "Track adjustments", dot: "dot-amber", items: ["Decrease front track width", "Move left front wheel out", "Move right rear wheel out (¼\" at a time)", "Move left rear wheel out", "Move rear track to right"] }
-          ]},
-          { label: "Stagger", fixes: [
-            { cat: "Stagger changes", dot: "dot-blue", items: ["Decrease right front stagger", "Increase right rear stagger (⅛\"–¼\" increments)"] }
-          ]},
-          { label: "Tires", fixes: [
-            { cat: "Compound & wheel", dot: "dot-green", items: ["Softer right front compound", "Harder right rear compound", "Wider right rear wheel"] }
-          ]},
-          { label: "Weight", fixes: [
-            { cat: "Weight distribution", dot: "dot-red", items: ["Increase left side weight", "Decrease cross weight", "Decrease rear weight %", "Increase front weight (.25% increments)"] }
-          ]},
-          { label: "Miscellaneous", fixes: [
-            { cat: "Other", dot: "dot-amber", items: ["Move seat forward", "Check toe — make sure not toed out", "Move rear track to right"] }
-          ]}
+          { label: "Geometry", fixes: [{ cat: "Caster & camber", dot: "dot-red", items: ["Increase right front caster","Increase left front camber (more positive)","Decrease right front camber (more negative)"] }]},
+          { label: "Air pressure", fixes: [{ cat: "Pressure changes", dot: "dot-blue", items: ["Decrease right front air pressure","Increase right rear air pressure","Increase left rear air pressure"] }]},
+          { label: "Wheel placement", fixes: [{ cat: "Track adjustments", dot: "dot-amber", items: ["Decrease front track width","Move left front wheel out","Move right rear wheel out (¼\" at a time)","Move left rear wheel out","Move rear track to right"] }]},
+          { label: "Stagger", fixes: [{ cat: "Stagger changes", dot: "dot-blue", items: ["Decrease right front stagger","Increase right rear stagger (⅛\"–¼\" increments)"] }]},
+          { label: "Tires", fixes: [{ cat: "Compound & wheel", dot: "dot-green", items: ["Softer right front compound","Harder right rear compound","Wider right rear wheel"] }]},
+          { label: "Weight", fixes: [{ cat: "Weight distribution", dot: "dot-red", items: ["Increase left side weight","Decrease cross weight","Decrease rear weight %","Increase front weight (.25% increments)"] }]},
+          { label: "Miscellaneous", fixes: [{ cat: "Other", dot: "dot-amber", items: ["Move seat forward","Check toe — make sure not toed out","Move rear track to right"] }]}
         ]
       },
       {
@@ -182,27 +387,13 @@ const tuningData = {
         desc: "Rear steps out, front bites too hard — too much front grip",
         badge: "badge-loose", badgeLabel: "Oversteer",
         sections: [
-          { label: "Geometry", fixes: [
-            { cat: "Caster & camber", dot: "dot-red", items: ["Increase LF and RF caster in equal increments", "Decrease left front camber (more negative)", "More positive right front camber", "Decrease left front caster"] }
-          ]},
-          { label: "Air pressure", fixes: [
-            { cat: "Pressure changes", dot: "dot-blue", items: ["Decrease right rear tire pressure", "Decrease left front air (¼–½ psi at a time)"] }
-          ]},
-          { label: "Wheel placement", fixes: [
-            { cat: "Track adjustments", dot: "dot-amber", items: ["Move right front wheel out", "Move left front wheel in", "Move right rear wheel in", "Move left rear wheel out", "Move rear track to left"] }
-          ]},
-          { label: "Stagger", fixes: [
-            { cat: "Stagger changes", dot: "dot-blue", items: ["Increase right front stagger", "Decrease rear stagger (⅛\"–¼\")"] }
-          ]},
-          { label: "Tires", fixes: [
-            { cat: "Compound & wheel", dot: "dot-green", items: ["Harder right front compound", "Softer right rear compound", "Narrower right rear wheel"] }
-          ]},
-          { label: "Weight", fixes: [
-            { cat: "Weight distribution", dot: "dot-red", items: ["Decrease nose weight (½%–1% increments)", "Increase rear weight", "Increase cross weight", "Decrease left side weight"] }
-          ]},
-          { label: "Miscellaneous", fixes: [
-            { cat: "Other", dot: "dot-amber", items: ["Move seat back; raise center of gravity", "Stiffen front of chassis", "Move rear track to left", "Check toe — make sure not toed out"] }
-          ]}
+          { label: "Geometry", fixes: [{ cat: "Caster & camber", dot: "dot-red", items: ["Increase LF and RF caster in equal increments","Decrease left front camber (more negative)","More positive right front camber","Decrease left front caster"] }]},
+          { label: "Air pressure", fixes: [{ cat: "Pressure changes", dot: "dot-blue", items: ["Decrease right rear tire pressure","Decrease left front air (¼–½ psi at a time)"] }]},
+          { label: "Wheel placement", fixes: [{ cat: "Track adjustments", dot: "dot-amber", items: ["Move right front wheel out","Move left front wheel in","Move right rear wheel in","Move left rear wheel out","Move rear track to left"] }]},
+          { label: "Stagger", fixes: [{ cat: "Stagger changes", dot: "dot-blue", items: ["Increase right front stagger","Decrease rear stagger (⅛\"–¼\")"] }]},
+          { label: "Tires", fixes: [{ cat: "Compound & wheel", dot: "dot-green", items: ["Harder right front compound","Softer right rear compound","Narrower right rear wheel"] }]},
+          { label: "Weight", fixes: [{ cat: "Weight distribution", dot: "dot-red", items: ["Decrease nose weight (½%–1% increments)","Increase rear weight","Increase cross weight","Decrease left side weight"] }]},
+          { label: "Miscellaneous", fixes: [{ cat: "Other", dot: "dot-amber", items: ["Move seat back; raise center of gravity","Stiffen front of chassis","Move rear track to left","Check toe — make sure not toed out"] }]}
         ]
       }
     ]
@@ -215,15 +406,9 @@ const tuningData = {
         desc: "Kart won't rotate through the middle",
         badge: "badge-push", badgeLabel: "Tight center",
         sections: [
-          { label: "Air pressure", fixes: [
-            { cat: "Pressure changes", dot: "dot-red", items: ["Increase left front 1 psi at a time", "Reduce right front ½ psi at a time", "Increase left rear and right rear ½ psi at a time"] }
-          ]},
-          { label: "Wheel placement", fixes: [
-            { cat: "Track adjustments", dot: "dot-blue", items: ["Move left front out (⅛\"–¼\" at a time)"] }
-          ]},
-          { label: "Tires", fixes: [
-            { cat: "Compound & wheel", dot: "dot-green", items: ["Try same compound on a narrower wheel"] }
-          ]}
+          { label: "Air pressure", fixes: [{ cat: "Pressure changes", dot: "dot-red", items: ["Increase left front 1 psi at a time","Reduce right front ½ psi at a time","Increase left rear and right rear ½ psi at a time"] }]},
+          { label: "Wheel placement", fixes: [{ cat: "Track adjustments", dot: "dot-blue", items: ["Move left front out (⅛\"–¼\" at a time)"] }]},
+          { label: "Tires", fixes: [{ cat: "Compound & wheel", dot: "dot-green", items: ["Try same compound on a narrower wheel"] }]}
         ]
       },
       {
@@ -231,12 +416,8 @@ const tuningData = {
         desc: "Rear slides or feels unstable mid-corner",
         badge: "badge-loose", badgeLabel: "Loose center",
         sections: [
-          { label: "Air pressure", fixes: [
-            { cat: "Pressure changes", dot: "dot-blue", items: ["Decrease left front pressure (¼–½ psi at a time)", "Increase left rear and right rear (½ psi at a time)"] }
-          ]},
-          { label: "Wheel placement", fixes: [
-            { cat: "Track adjustments", dot: "dot-red", items: ["Move left front in (⅛\"–¼\" at a time)", "Move right rear in as close as possible"] }
-          ]}
+          { label: "Air pressure", fixes: [{ cat: "Pressure changes", dot: "dot-blue", items: ["Decrease left front pressure (¼–½ psi at a time)","Increase left rear and right rear (½ psi at a time)"] }]},
+          { label: "Wheel placement", fixes: [{ cat: "Track adjustments", dot: "dot-red", items: ["Move left front in (⅛\"–¼\" at a time)","Move right rear in as close as possible"] }]}
         ]
       },
       {
@@ -244,24 +425,12 @@ const tuningData = {
         desc: "Whole kart sliding, losing control",
         badge: "badge-loose", badgeLabel: "Full drift",
         sections: [
-          { label: "Geometry", fixes: [
-            { cat: "Caster", dot: "dot-red", items: ["Increase LF and RF caster in equal increments"] }
-          ]},
-          { label: "Air pressure", fixes: [
-            { cat: "Pressure changes", dot: "dot-blue", items: ["Decrease right front tire pressure", "Decrease right rear tire pressure", "Reduce air all around equally (same amount each tire)"] }
-          ]},
-          { label: "Wheel placement", fixes: [
-            { cat: "Track adjustments", dot: "dot-amber", items: ["Move all tires in", "If on 10\" wheels, switch to 9.5\""] }
-          ]},
-          { label: "Stagger", fixes: [
-            { cat: "Stagger changes", dot: "dot-blue", items: ["Decrease right rear stagger"] }
-          ]},
-          { label: "Tires", fixes: [
-            { cat: "Compound & wheel", dot: "dot-green", items: ["Softer compound for more traction", "Softer right rear (or new uncut over cut tires)", "Go to 9.5\" wheel if currently on 10\""] }
-          ]},
-          { label: "Weight", fixes: [
-            { cat: "Weight distribution", dot: "dot-red", items: ["Decrease left side %", "Increase cross weight", "Raise seat for more weight transfer"] }
-          ]}
+          { label: "Geometry", fixes: [{ cat: "Caster", dot: "dot-red", items: ["Increase LF and RF caster in equal increments"] }]},
+          { label: "Air pressure", fixes: [{ cat: "Pressure changes", dot: "dot-blue", items: ["Decrease right front tire pressure","Decrease right rear tire pressure","Reduce air all around equally (same amount each tire)"] }]},
+          { label: "Wheel placement", fixes: [{ cat: "Track adjustments", dot: "dot-amber", items: ["Move all tires in","If on 10\" wheels, switch to 9.5\""] }]},
+          { label: "Stagger", fixes: [{ cat: "Stagger changes", dot: "dot-blue", items: ["Decrease right rear stagger"] }]},
+          { label: "Tires", fixes: [{ cat: "Compound & wheel", dot: "dot-green", items: ["Softer compound for more traction","Softer right rear (or new uncut over cut tires)","Go to 9.5\" wheel if currently on 10\""] }]},
+          { label: "Weight", fixes: [{ cat: "Weight distribution", dot: "dot-red", items: ["Decrease left side %","Increase cross weight","Raise seat for more weight transfer"] }]}
         ]
       }
     ]
@@ -274,27 +443,13 @@ const tuningData = {
         desc: "Kart goes wide, understeer off corner — too much rear grip",
         badge: "badge-push", badgeLabel: "Tight exit",
         sections: [
-          { label: "Geometry", fixes: [
-            { cat: "Caster & camber", dot: "dot-red", items: ["Increase LF and RF caster in equal increments", "Increase left front camber (more positive)", "Decrease right front camber (more negative)"] }
-          ]},
-          { label: "Air pressure", fixes: [
-            { cat: "Pressure changes", dot: "dot-blue", items: ["Increase air in left front", "Increase air in right rear", "Decrease air in right front", "Decrease left rear and right rear ½ psi"] }
-          ]},
-          { label: "Wheel placement", fixes: [
-            { cat: "Track adjustments", dot: "dot-amber", items: ["Move left rear out (¼\"–½\")", "Move right rear wheel out", "Move rear track to right", "Widen front wheel width"] }
-          ]},
-          { label: "Stagger", fixes: [
-            { cat: "Stagger changes", dot: "dot-blue", items: ["Decrease front stagger", "Increase rear stagger"] }
-          ]},
-          { label: "Tires", fixes: [
-            { cat: "Compound & wheel", dot: "dot-green", items: ["Harder left rear compound", "Harder right rear compound"] }
-          ]},
-          { label: "Weight", fixes: [
-            { cat: "Weight distribution", dot: "dot-red", items: ["Increase nose weight", "Decrease cross weight (½%–1% increments)"] }
-          ]},
-          { label: "Miscellaneous", fixes: [
-            { cat: "Other", dot: "dot-amber", items: ["Stiffen rear of chassis", "Move rear track to right"] }
-          ]}
+          { label: "Geometry", fixes: [{ cat: "Caster & camber", dot: "dot-red", items: ["Increase LF and RF caster in equal increments","Increase left front camber (more positive)","Decrease right front camber (more negative)"] }]},
+          { label: "Air pressure", fixes: [{ cat: "Pressure changes", dot: "dot-blue", items: ["Increase air in left front","Increase air in right rear","Decrease air in right front","Decrease left rear and right rear ½ psi"] }]},
+          { label: "Wheel placement", fixes: [{ cat: "Track adjustments", dot: "dot-amber", items: ["Move left rear out (¼\"–½\")","Move right rear wheel out","Move rear track to right","Widen front wheel width"] }]},
+          { label: "Stagger", fixes: [{ cat: "Stagger changes", dot: "dot-blue", items: ["Decrease front stagger","Increase rear stagger"] }]},
+          { label: "Tires", fixes: [{ cat: "Compound & wheel", dot: "dot-green", items: ["Harder left rear compound","Harder right rear compound"] }]},
+          { label: "Weight", fixes: [{ cat: "Weight distribution", dot: "dot-red", items: ["Increase nose weight","Decrease cross weight (½%–1% increments)"] }]},
+          { label: "Miscellaneous", fixes: [{ cat: "Other", dot: "dot-amber", items: ["Stiffen rear of chassis","Move rear track to right"] }]}
         ]
       },
       {
@@ -302,27 +457,13 @@ const tuningData = {
         desc: "Rear kicks out when accelerating away — too much front bite",
         badge: "badge-loose", badgeLabel: "Loose exit",
         sections: [
-          { label: "Geometry", fixes: [
-            { cat: "Caster & camber", dot: "dot-blue", items: ["Decrease LF and RF caster in equal increments", "More positive right front camber", "More negative left front camber", "Decrease right front caster"] }
-          ]},
-          { label: "Air pressure", fixes: [
-            { cat: "Pressure changes", dot: "dot-red", items: ["Decrease right rear tire pressure", "Increase left rear and right rear ½ psi at a time"] }
-          ]},
-          { label: "Wheel placement", fixes: [
-            { cat: "Track adjustments", dot: "dot-amber", items: ["Move left rear in (¼\"–½\")", "Move right rear wheel in", "Move rear track to left"] }
-          ]},
-          { label: "Stagger", fixes: [
-            { cat: "Stagger changes", dot: "dot-blue", items: ["Increase front stagger", "Decrease rear stagger"] }
-          ]},
-          { label: "Tires", fixes: [
-            { cat: "Compound & wheel", dot: "dot-green", items: ["Softer left rear compound", "Softer compound; decrease air"] }
-          ]},
-          { label: "Weight", fixes: [
-            { cat: "Weight distribution", dot: "dot-red", items: ["Increase cross weight (½%–1%)", "Increase rear weight %"] }
-          ]},
-          { label: "Miscellaneous", fixes: [
-            { cat: "Other", dot: "dot-amber", items: ["Raise center of gravity", "Raise rear of kart", "Move rear track to left"] }
-          ]}
+          { label: "Geometry", fixes: [{ cat: "Caster & camber", dot: "dot-blue", items: ["Decrease LF and RF caster in equal increments","More positive right front camber","More negative left front camber","Decrease right front caster"] }]},
+          { label: "Air pressure", fixes: [{ cat: "Pressure changes", dot: "dot-red", items: ["Decrease right rear tire pressure","Increase left rear and right rear ½ psi at a time"] }]},
+          { label: "Wheel placement", fixes: [{ cat: "Track adjustments", dot: "dot-amber", items: ["Move left rear in (¼\"–½\")","Move right rear wheel in","Move rear track to left"] }]},
+          { label: "Stagger", fixes: [{ cat: "Stagger changes", dot: "dot-blue", items: ["Increase front stagger","Decrease rear stagger"] }]},
+          { label: "Tires", fixes: [{ cat: "Compound & wheel", dot: "dot-green", items: ["Softer left rear compound","Softer compound; decrease air"] }]},
+          { label: "Weight", fixes: [{ cat: "Weight distribution", dot: "dot-red", items: ["Increase cross weight (½%–1%)","Increase rear weight %"] }]},
+          { label: "Miscellaneous", fixes: [{ cat: "Other", dot: "dot-amber", items: ["Raise center of gravity","Raise rear of kart","Move rear track to left"] }]}
         ]
       }
     ]
@@ -335,12 +476,8 @@ const tuningData = {
         desc: "Losing time vs other karts in a straight line",
         badge: "badge-other", badgeLabel: "Top speed",
         sections: [
-          { label: "Gearing", fixes: [
-            { cat: "Gear ratio", dot: "dot-red", items: ["Ratio too short — remove teeth from rear sprocket", "1 driver gear ≈ 3–5 rear gears", "Larger driver sprocket = higher top speed", "Add 1 driver gear to drop RPM ~400–500"] }
-          ]},
-          { label: "Miscellaneous", fixes: [
-            { cat: "Driving & engine", dot: "dot-amber", items: ["Evaluate driving line through previous corner — wrong line bleeds speed", "Check carb settings and jetting", "Lean-in on mixture screw helps top-end RPM"] }
-          ]}
+          { label: "Gearing", fixes: [{ cat: "Gear ratio", dot: "dot-red", items: ["Ratio too short — remove teeth from rear sprocket","1 driver gear ≈ 3–5 rear gears","Larger driver sprocket = higher top speed","Add 1 driver gear to drop RPM ~400–500"] }]},
+          { label: "Miscellaneous", fixes: [{ cat: "Driving & engine", dot: "dot-amber", items: ["Evaluate driving line through previous corner — wrong line bleeds speed","Check carb settings and jetting","Lean-in on mixture screw helps top-end RPM"] }]}
         ]
       },
       {
@@ -348,12 +485,8 @@ const tuningData = {
         desc: "Poor drive off corners or out of slow sections",
         badge: "badge-other", badgeLabel: "Acceleration",
         sections: [
-          { label: "Gearing", fixes: [
-            { cat: "Gear ratio", dot: "dot-red", items: ["Ratio too tall — add teeth to rear sprocket", "Each rear gear ≈ 100 RPM change", "Smaller driver sprocket = more pull off corner", "1 front gear = ~3 rear gears"] }
-          ]},
-          { label: "Miscellaneous", fixes: [
-            { cat: "Driving & engine", dot: "dot-amber", items: ["Evaluate driving line through corner — poor line kills launch", "Rich-out on mixture screw helps bottom-end pull power", "Check carb settings and kart setup"] }
-          ]}
+          { label: "Gearing", fixes: [{ cat: "Gear ratio", dot: "dot-red", items: ["Ratio too tall — add teeth to rear sprocket","Each rear gear ≈ 100 RPM change","Smaller driver sprocket = more pull off corner","1 front gear = ~3 rear gears"] }]},
+          { label: "Miscellaneous", fixes: [{ cat: "Driving & engine", dot: "dot-amber", items: ["Evaluate driving line through corner — poor line kills launch","Rich-out on mixture screw helps bottom-end pull power","Check carb settings and kart setup"] }]}
         ]
       }
     ]
@@ -366,12 +499,8 @@ const tuningData = {
         desc: "Too much slide, losing time everywhere",
         badge: "badge-other", badgeLabel: "No grip",
         sections: [
-          { label: "Weight", fixes: [
-            { cat: "Seat & balance", dot: "dot-red", items: ["Raise seat", "Move front track out", "Move rear track in"] }
-          ]},
-          { label: "Tires", fixes: [
-            { cat: "Compound & pressure", dot: "dot-green", items: ["Less available grip = use less air pressure", "Soft sidewall for soft track", "Soft tire for non-abrasive track"] }
-          ]}
+          { label: "Weight", fixes: [{ cat: "Seat & balance", dot: "dot-red", items: ["Raise seat","Move front track out","Move rear track in"] }]},
+          { label: "Tires", fixes: [{ cat: "Compound & pressure", dot: "dot-green", items: ["Less available grip = use less air pressure","Soft sidewall for soft track","Soft tire for non-abrasive track"] }]}
         ]
       },
       {
@@ -379,18 +508,10 @@ const tuningData = {
         desc: "Too much grip, right rear overloaded",
         badge: "badge-other", badgeLabel: "Too much grip",
         sections: [
-          { label: "Wheel placement", fixes: [
-            { cat: "Track adjustments", dot: "dot-blue", items: ["Move front wheels out", "Move right rear wheel out", "Move rear track to right"] }
-          ]},
-          { label: "Stagger", fixes: [
-            { cat: "Stagger changes", dot: "dot-amber", items: ["Increase front and rear stagger"] }
-          ]},
-          { label: "Tires", fixes: [
-            { cat: "Compound & pressure", dot: "dot-green", items: ["Harder tire compound", "Increase right side air pressure"] }
-          ]},
-          { label: "Weight", fixes: [
-            { cat: "Weight distribution", dot: "dot-red", items: ["Increase left side weight", "Lower cross weight", "Increase rear weight", "Lower seat"] }
-          ]}
+          { label: "Wheel placement", fixes: [{ cat: "Track adjustments", dot: "dot-blue", items: ["Move front wheels out","Move right rear wheel out","Move rear track to right"] }]},
+          { label: "Stagger", fixes: [{ cat: "Stagger changes", dot: "dot-amber", items: ["Increase front and rear stagger"] }]},
+          { label: "Tires", fixes: [{ cat: "Compound & pressure", dot: "dot-green", items: ["Harder tire compound","Increase right side air pressure"] }]},
+          { label: "Weight", fixes: [{ cat: "Weight distribution", dot: "dot-red", items: ["Increase left side weight","Lower cross weight","Increase rear weight","Lower seat"] }]}
         ]
       },
       {
@@ -398,18 +519,10 @@ const tuningData = {
         desc: "Consistently pushing throughout every corner",
         badge: "badge-push", badgeLabel: "Understeer",
         sections: [
-          { label: "Wheel placement", fixes: [
-            { cat: "Track width", dot: "dot-red", items: ["Narrower front track", "Wider rear track"] }
-          ]},
-          { label: "Tires", fixes: [
-            { cat: "Compound & size", dot: "dot-green", items: ["Wider front tires", "Softer compound in front", "Narrower rear tires", "Harder compound in rear"] }
-          ]},
-          { label: "Air pressure", fixes: [
-            { cat: "Pressure changes", dot: "dot-blue", items: ["Lower air pressure in front", "Higher air pressure in rear"] }
-          ]},
-          { label: "Miscellaneous", fixes: [
-            { cat: "Chassis & weight", dot: "dot-amber", items: ["Move weight to front", "Increase stagger", "Tighten rear bumper", "Decrease frame flex"] }
-          ]}
+          { label: "Wheel placement", fixes: [{ cat: "Track width", dot: "dot-red", items: ["Narrower front track","Wider rear track"] }]},
+          { label: "Tires", fixes: [{ cat: "Compound & size", dot: "dot-green", items: ["Wider front tires","Softer compound in front","Narrower rear tires","Harder compound in rear"] }]},
+          { label: "Air pressure", fixes: [{ cat: "Pressure changes", dot: "dot-blue", items: ["Lower air pressure in front","Higher air pressure in rear"] }]},
+          { label: "Miscellaneous", fixes: [{ cat: "Chassis & weight", dot: "dot-amber", items: ["Move weight to front","Increase stagger","Tighten rear bumper","Decrease frame flex"] }]}
         ]
       },
       {
@@ -417,44 +530,36 @@ const tuningData = {
         desc: "Consistently loose through every corner",
         badge: "badge-loose", badgeLabel: "Oversteer",
         sections: [
-          { label: "Wheel placement", fixes: [
-            { cat: "Track width", dot: "dot-blue", items: ["Wider front track", "Narrower rear tires", "Wider rear tires"] }
-          ]},
-          { label: "Tires", fixes: [
-            { cat: "Compound & size", dot: "dot-green", items: ["Narrower front tires", "Harder compound in front", "Softer compound in rear"] }
-          ]},
-          { label: "Air pressure", fixes: [
-            { cat: "Pressure changes", dot: "dot-red", items: ["Higher air pressure in front", "Lower air pressure in rear"] }
-          ]},
-          { label: "Miscellaneous", fixes: [
-            { cat: "Chassis & weight", dot: "dot-amber", items: ["Move weight to rear", "Decrease stagger", "Loosen rear bumper", "Increase frame flex"] }
-          ]}
+          { label: "Wheel placement", fixes: [{ cat: "Track width", dot: "dot-blue", items: ["Wider front track","Narrower rear tires","Wider rear tires"] }]},
+          { label: "Tires", fixes: [{ cat: "Compound & size", dot: "dot-green", items: ["Narrower front tires","Harder compound in front","Softer compound in rear"] }]},
+          { label: "Air pressure", fixes: [{ cat: "Pressure changes", dot: "dot-red", items: ["Higher air pressure in front","Lower air pressure in rear"] }]},
+          { label: "Miscellaneous", fixes: [{ cat: "Chassis & weight", dot: "dot-amber", items: ["Move weight to rear","Decrease stagger","Loosen rear bumper","Increase frame flex"] }]}
         ]
       }
     ]
   }
 };
 
+/* ═══════════════════════════════════════
+   TUNER LOGIC
+═══════════════════════════════════════ */
 let navHistory = [];
 let currentSection = null;
 
-function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+function showScreen(id) {
+  document.querySelectorAll('#tuner-main .screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  document.querySelector('main').scrollTo(0, 0);
-  updateHeader(id);
-}
-
-function updateHeader(id) {
+  document.getElementById('tuner-main').scrollTo(0, 0);
   const steps = ['s0','s1','s2'];
   const idx = steps.indexOf(id);
   document.getElementById('backBtn').classList.toggle('visible', id !== 's0');
   ['p0','p1','p2'].forEach((p, i) => document.getElementById(p).classList.toggle('on', i <= idx));
-  document.getElementById('headerTitle').textContent = id === 's0' ? '🏁 Kart Tuner' : id === 's1' ? 'What is it doing?' : 'Your fixes';
+  const titles = { s0: 'Where\'s the problem?', s1: 'What is it doing?', s2: 'Your fixes' };
+  document.getElementById('tunerTitle').textContent = titles[id] || '';
 }
 
 function go(key) {
-  navHistory.push(document.querySelector('.screen.active').id);
+  navHistory.push(document.querySelector('#tuner-main .screen.active').id);
   currentSection = key;
   const sec = tuningData[key];
   document.getElementById('s1Title').textContent = sec.title;
@@ -465,11 +570,11 @@ function go(key) {
   sec.conditions.forEach((c, i) => {
     const b = document.createElement('button');
     b.className = 'choice-btn';
-    b.innerHTML = `<div class="choice-icon ${iconCls[i % iconCls.length]}">${icons[i % icons.length]}</div><div class="choice-text"><span class="choice-label">${c.label}</span><span class="choice-desc">${c.desc}</span></div><span class="chevron">›</span>`;
+    b.innerHTML = `<div class="choice-icon ${iconCls[i%iconCls.length]}">${icons[i%icons.length]}</div><div class="choice-text"><span class="choice-label">${c.label}</span><span class="choice-desc">${c.desc}</span></div><span class="chevron">›</span>`;
     b.onclick = () => showResult(i);
     btns.appendChild(b);
   });
-  show('s1');
+  showScreen('s1');
 }
 
 function showResult(idx) {
@@ -490,12 +595,342 @@ function showResult(idx) {
   });
   html += `<div class="tip-box"><strong>Tip:</strong> Change one thing at a time and test. Even small adjustments — ¼ psi of air, ⅛" of stagger — can make a big difference on the stopwatch.</div>`;
   document.getElementById('s2Content').innerHTML = html;
-  show('s2');
+  showScreen('s2');
 }
 
 function back() {
-  if (navHistory.length) show(navHistory.pop());
+  if (navHistory.length) showScreen(navHistory.pop());
 }
+
+/* ═══════════════════════════════════════
+   TAB SWITCHING
+═══════════════════════════════════════ */
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+  if (tab === 'log') renderSessionList();
+}
+
+/* ═══════════════════════════════════════
+   LOGBOOK — STORAGE
+═══════════════════════════════════════ */
+const STORAGE_KEY = 'kart_sessions_v1';
+
+function getSessions() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveSessions(sessions) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+}
+
+/* ═══════════════════════════════════════
+   LOGBOOK — LIST
+═══════════════════════════════════════ */
+function renderSessionList() {
+  const sessions = getSessions();
+  const container = document.getElementById('sessions-list');
+  if (!sessions.length) {
+    container.innerHTML = `<div class="empty-state"><span class="big-icon">📋</span><p>No sessions yet. Tap <strong>+ New Session</strong> to log your first race day setup.</p></div>`;
+    return;
+  }
+  sessions.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  container.innerHTML = sessions.map(s => {
+    const raceTags = s.races && s.races.length ? `<span class="session-tag has-changes">${s.races.length} race${s.races.length > 1 ? 's' : ''}</span>` : '';
+    const condTag = s.conditions ? `<span class="session-tag">${s.conditions}</span>` : '';
+    const dateStr = s.date ? new Date(s.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+    return `<div class="session-card" onclick="viewSession('${s.id}')">
+      <div class="session-card-header">
+        <div class="session-card-meta">
+          <div class="session-date">${dateStr}</div>
+          <div class="session-name">${esc(s.name || 'Unnamed session')}</div>
+          ${s.track ? `<div class="session-track">${esc(s.track)}</div>` : ''}
+        </div>
+        <div class="session-chevron">›</div>
+      </div>
+      ${condTag || raceTags ? `<div class="session-card-footer">${condTag}${raceTags}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════
+   LOGBOOK — DETAIL VIEW
+═══════════════════════════════════════ */
+let viewingId = null;
+
+function viewSession(id) {
+  viewingId = id;
+  const sessions = getSessions();
+  const s = sessions.find(x => x.id === id);
+  if (!s) return;
+
+  const dateStr = s.date ? new Date(s.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : '';
+
+  const setupFields = [
+    ['LF caster', s.setup?.lfCaster], ['RF caster', s.setup?.rfCaster],
+    ['LF camber', s.setup?.lfCamber], ['RF camber', s.setup?.rfCamber],
+    ['LF psi', s.setup?.lfPsi], ['RF psi', s.setup?.rfPsi],
+    ['LR psi', s.setup?.lrPsi], ['RR psi', s.setup?.rrPsi],
+    ['Front stagger', s.setup?.frontStagger], ['Rear stagger', s.setup?.rearStagger],
+    ['Cross weight', s.setup?.cross], ['Left side %', s.setup?.leftside],
+    ['Gear (driver)', s.setup?.gearDriver], ['Gear (rear)', s.setup?.gearRear],
+  ].filter(([k, v]) => v);
+
+  let html = `<div class="detail-hero">
+    <div class="detail-date">${dateStr}</div>
+    <div class="detail-name">${esc(s.name || 'Unnamed session')}</div>
+    ${s.track ? `<div class="detail-track">${esc(s.track)}</div>` : ''}
+  </div>`;
+
+  if (s.conditions) {
+    html += `<div class="detail-block"><div class="detail-block-title">Conditions</div><div class="detail-block-body"><div class="detail-note">${esc(s.conditions)}</div></div></div>`;
+  }
+
+  if (setupFields.length) {
+    html += `<div class="detail-block"><div class="detail-block-title">Baseline setup</div><div class="detail-block-body">`;
+    setupFields.forEach(([k, v]) => {
+      html += `<div class="detail-kv"><span class="detail-k">${k}</span><span class="detail-v">${esc(v)}</span></div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  if (s.tires) {
+    html += `<div class="detail-block"><div class="detail-block-title">Tires</div><div class="detail-block-body"><div class="detail-note">${esc(s.tires)}</div></div></div>`;
+  }
+
+  if (s.notes) {
+    html += `<div class="detail-block"><div class="detail-block-title">Notes</div><div class="detail-block-body"><div class="detail-note">${esc(s.notes)}</div></div></div>`;
+  }
+
+  if (s.races && s.races.length) {
+    html += `<div class="section-label">Race / heat changes</div>`;
+    s.races.forEach((r, i) => {
+      html += `<div class="race-detail-card">
+        <div class="race-detail-num">Race / Heat ${i + 1}${r.label ? ' — ' + esc(r.label) : ''}</div>`;
+      if (r.changes) html += `<div class="detail-kv" style="border:none;padding:0;"><span class="detail-k" style="color:var(--text);font-size:14px;line-height:1.6;">${esc(r.changes)}</span></div>`;
+      if (r.result) html += `<div class="detail-kv" style="margin-top:8px;"><span class="detail-k">Result</span><span class="detail-v">${esc(r.result)}</span></div>`;
+      if (r.feel) html += `<div class="detail-kv"><span class="detail-k">Kart feel</span><span class="detail-v">${esc(r.feel)}</span></div>`;
+      html += `</div>`;
+    });
+  }
+
+  html += `<button class="btn-secondary" style="width:100%;margin-top:20px;" onclick="editSession('${s.id}')">Edit session</button>`;
+  html += `<button class="delete-session-btn" onclick="promptDelete('${s.id}')">Delete session</button>`;
+
+  document.getElementById('log-detail-content').innerHTML = html;
+  showLogScreen('log-detail');
+}
+
+/* ═══════════════════════════════════════
+   LOGBOOK — FORM
+═══════════════════════════════════════ */
+let editingId = null;
+let raceCount = 0;
+
+function showNewSession() {
+  editingId = null;
+  raceCount = 0;
+  document.getElementById('form-mode-label').textContent = 'New Session';
+  document.getElementById('form-title').textContent = 'Race day details';
+  clearForm();
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('races-container').innerHTML = '';
+  showLogScreen('log-form');
+}
+
+function editSession(id) {
+  editingId = id;
+  const s = getSessions().find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('form-mode-label').textContent = 'Edit Session';
+  document.getElementById('form-title').textContent = 'Edit race day';
+  clearForm();
+  document.getElementById('f-name').value = s.name || '';
+  document.getElementById('f-date').value = s.date || '';
+  document.getElementById('f-track').value = s.track || '';
+  document.getElementById('f-conditions').value = s.conditions || '';
+  document.getElementById('f-tires').value = s.tires || '';
+  document.getElementById('f-notes').value = s.notes || '';
+  if (s.setup) {
+    document.getElementById('f-lf-caster').value = s.setup.lfCaster || '';
+    document.getElementById('f-rf-caster').value = s.setup.rfCaster || '';
+    document.getElementById('f-lf-camber').value = s.setup.lfCamber || '';
+    document.getElementById('f-rf-camber').value = s.setup.rfCamber || '';
+    document.getElementById('f-lf-psi').value = s.setup.lfPsi || '';
+    document.getElementById('f-rf-psi').value = s.setup.rfPsi || '';
+    document.getElementById('f-lr-psi').value = s.setup.lrPsi || '';
+    document.getElementById('f-rr-psi').value = s.setup.rrPsi || '';
+    document.getElementById('f-front-stagger').value = s.setup.frontStagger || '';
+    document.getElementById('f-rear-stagger').value = s.setup.rearStagger || '';
+    document.getElementById('f-cross').value = s.setup.cross || '';
+    document.getElementById('f-leftside').value = s.setup.leftside || '';
+    document.getElementById('f-gear-driver').value = s.setup.gearDriver || '';
+    document.getElementById('f-gear-rear').value = s.setup.gearRear || '';
+  }
+  raceCount = 0;
+  document.getElementById('races-container').innerHTML = '';
+  if (s.races) s.races.forEach(r => addRaceEntry(r));
+  showLogScreen('log-form');
+}
+
+function clearForm() {
+  ['f-name','f-date','f-track','f-tires','f-notes',
+   'f-lf-caster','f-rf-caster','f-lf-camber','f-rf-camber',
+   'f-lf-psi','f-rf-psi','f-lr-psi','f-rr-psi',
+   'f-front-stagger','f-rear-stagger','f-cross','f-leftside',
+   'f-gear-driver','f-gear-rear'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('f-conditions').value = '';
+}
+
+function addRaceEntry(data) {
+  raceCount++;
+  const n = raceCount;
+  const div = document.createElement('div');
+  div.className = 'race-entry';
+  div.id = 'race-entry-' + n;
+  div.innerHTML = `
+    <div class="race-entry-header">
+      <span class="race-num">Race / Heat ${n}</span>
+      <button class="race-delete" onclick="removeRace(${n})" aria-label="Delete">×</button>
+    </div>
+    <div class="race-entry-body">
+      <div class="setup-field">
+        <span class="setup-field-label">Label (optional)</span>
+        <input class="setup-field-input" id="race-${n}-label" placeholder="e.g. Heat 1, Final" value="${esc(data?.label||'')}">
+      </div>
+      <div class="setup-field">
+        <span class="setup-field-label">Changes made</span>
+        <textarea class="form-textarea" id="race-${n}-changes" placeholder="e.g. Added 1 psi to RR, moved LF out ¼&quot;…" style="min-height:70px;">${esc(data?.changes||'')}</textarea>
+      </div>
+      <div class="form-row">
+        <div class="setup-field">
+          <span class="setup-field-label">Result / finish</span>
+          <input class="setup-field-input" id="race-${n}-result" placeholder="e.g. 3rd" value="${esc(data?.result||'')}">
+        </div>
+        <div class="setup-field">
+          <span class="setup-field-label">Kart feel</span>
+          <input class="setup-field-input" id="race-${n}-feel" placeholder="e.g. Much better" value="${esc(data?.feel||'')}">
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('races-container').appendChild(div);
+}
+
+function removeRace(n) {
+  const el = document.getElementById('race-entry-' + n);
+  if (el) el.remove();
+}
+
+function saveSession() {
+  const name = document.getElementById('f-name').value.trim();
+  const sessions = getSessions();
+
+  const races = [];
+  document.querySelectorAll('.race-entry').forEach(el => {
+    const n = el.id.replace('race-entry-', '');
+    races.push({
+      label: document.getElementById('race-'+n+'-label')?.value.trim() || '',
+      changes: document.getElementById('race-'+n+'-changes')?.value.trim() || '',
+      result: document.getElementById('race-'+n+'-result')?.value.trim() || '',
+      feel: document.getElementById('race-'+n+'-feel')?.value.trim() || '',
+    });
+  });
+
+  const session = {
+    id: editingId || 'sess_' + Date.now(),
+    name: name || 'Unnamed session',
+    date: document.getElementById('f-date').value,
+    track: document.getElementById('f-track').value.trim(),
+    conditions: document.getElementById('f-conditions').value,
+    tires: document.getElementById('f-tires').value.trim(),
+    notes: document.getElementById('f-notes').value.trim(),
+    setup: {
+      lfCaster: document.getElementById('f-lf-caster').value.trim(),
+      rfCaster: document.getElementById('f-rf-caster').value.trim(),
+      lfCamber: document.getElementById('f-lf-camber').value.trim(),
+      rfCamber: document.getElementById('f-rf-camber').value.trim(),
+      lfPsi: document.getElementById('f-lf-psi').value.trim(),
+      rfPsi: document.getElementById('f-rf-psi').value.trim(),
+      lrPsi: document.getElementById('f-lr-psi').value.trim(),
+      rrPsi: document.getElementById('f-rr-psi').value.trim(),
+      frontStagger: document.getElementById('f-front-stagger').value.trim(),
+      rearStagger: document.getElementById('f-rear-stagger').value.trim(),
+      cross: document.getElementById('f-cross').value.trim(),
+      leftside: document.getElementById('f-leftside').value.trim(),
+      gearDriver: document.getElementById('f-gear-driver').value.trim(),
+      gearRear: document.getElementById('f-gear-rear').value.trim(),
+    },
+    races,
+    updatedAt: Date.now(),
+  };
+
+  if (editingId) {
+    const idx = sessions.findIndex(x => x.id === editingId);
+    if (idx >= 0) sessions[idx] = session; else sessions.push(session);
+  } else {
+    sessions.push(session);
+  }
+
+  saveSessions(sessions);
+  renderSessionList();
+  showLogScreen('log-list');
+  document.getElementById('log-main').scrollTo(0, 0);
+}
+
+function cancelForm() {
+  showLogScreen(viewingId ? 'log-detail' : 'log-list');
+}
+
+/* ═══════════════════════════════════════
+   LOGBOOK — DELETE
+═══════════════════════════════════════ */
+let deleteTargetId = null;
+
+function promptDelete(id) {
+  deleteTargetId = id;
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+
+function closeConfirm() {
+  document.getElementById('confirm-overlay').classList.remove('open');
+  deleteTargetId = null;
+}
+
+function confirmDelete() {
+  if (!deleteTargetId) return;
+  const sessions = getSessions().filter(s => s.id !== deleteTargetId);
+  saveSessions(sessions);
+  closeConfirm();
+  viewingId = null;
+  renderSessionList();
+  showLogScreen('log-list');
+}
+
+/* ═══════════════════════════════════════
+   LOGBOOK — SCREEN NAV
+═══════════════════════════════════════ */
+function showLogScreen(id) {
+  document.querySelectorAll('#log-main .screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('log-main').scrollTo(0, 0);
+}
+
+/* ═══════════════════════════════════════
+   UTILS
+═══════════════════════════════════════ */
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Set today's date on load
+document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
 </script>
 </body>
 </html>
